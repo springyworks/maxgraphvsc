@@ -10,8 +10,15 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}"
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"--log=off"
 			],
+			"env": {
+				"NODE_NO_WARNINGS": "1",
+				"NODE_OPTIONS": "--no-deprecation",
+				"VSCODE_EXTHOST_WILL_SEND_SOCKET": "",
+				"NODE_ENV": "development"
+			},
 			"outFiles": [
 				"${workspaceFolder}/dist/**/*.js"
 			],

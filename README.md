@@ -1,9 +1,10 @@
 # maxgraphvsc README
 
-This is the README for your extension "maxgraphvsc". After writing up a brief description, we recommend including the following sections.
+A VS Code extension to visualize and develop TypeScript code using standard diagramming conventions.
 
 ## Features
 
+TODO 
 Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
 
 For example if there is an image subfolder under your extension project workspace:

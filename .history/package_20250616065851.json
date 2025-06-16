@@ -16,14 +16,6 @@
       {
         "command": "maxgraphvsc.helloWorld",
         "title": "Hello World"
-      },
-      {
-        "command": "maxgraphvsc.testExtension",
-        "title": "🧠 Test MaxGraphVSC Extension"
-      },
-      {
-        "command": "maxgraphvsc.openNeuralNetwork",
-        "title": "🧠 Open Neural Network Visualization"
       }
     ]
   },
@@ -32,12 +24,12 @@
     "compile": "node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
-    "watch:tsc": "tsc --noEmit --watch --skipLibCheck --project tsconfig.json",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "package": "npm run check-types && npm run lint && node esbuild.js --production",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "check-types": "tsc --noEmit --skipLibCheck",
+    "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test"
   },
@@ -53,8 +45,5 @@
     "eslint": "^9.9.1",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.5.4"
-  },
-  "dependencies": {
-    "@maxgraph/core": "^0.20.0"
   }
 }
