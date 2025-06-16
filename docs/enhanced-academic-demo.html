@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neural Network Visualizer - Enhanced Academic Demo</title>
-    <meta name="description" content="Enhanced academic demonstration of neural network visualization with simulated Rust/WASM computation, subtle animations, and professional interactions">
+    <title>🧠 Neural Network Visualizer - Interactive Academic Demo</title>
+    <meta name="description" content="Professional interactive neural network visualization with simulated Rust/WASM computation, smooth animations, and academic-quality interactions">
+    <meta property="og:title" content="Neural Network Visualizer - Interactive Demo">
+    <meta property="og:description" content="Professional neural network visualization powered by Rust WASM">
     <style>
         body {
             font-family: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
@@ -157,6 +159,14 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border: 2px solid;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            
+            /* Better touch targets and interaction */
+            min-width: 44px;
+            min-height: 44px;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none; /* Prevent browser default touch behaviors */
         }
         
         .neuron:hover {
@@ -506,8 +516,9 @@
             neuron.dataset.type = type;
             neuron.dataset.id = `neuron-${neurons.length}`;
             
-            // Add drag functionality
+            // Add drag functionality - both mouse and touch
             neuron.addEventListener('mousedown', startDrag);
+            neuron.addEventListener('touchstart', startDrag, { passive: false });
             
             document.getElementById('graph').appendChild(neuron);
             neurons.push({ element: neuron, x, y, type, label, activation: 0 });
@@ -579,34 +590,50 @@
             edge.style.transform = `rotate(${angle}deg)`;
         }
         
-        // Drag functionality
+        // Drag functionality with proper touch support
+        dragState = { isDragging: false, neuron: null, offset: { x: 0, y: 0 }, touchHoldTimer: null };
+
         function startDrag(e) {
             e.preventDefault();
             const neuron = e.target;
+            
+            // Get coordinates from mouse or touch event
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
             const rect = neuron.getBoundingClientRect();
             const containerRect = document.getElementById('graph').getBoundingClientRect();
             
             dragState.isDragging = true;
             dragState.neuron = neuron;
             dragState.offset = {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
+                x: clientX - rect.left,
+                y: clientY - rect.top
             };
             
             neuron.classList.add('dragging');
             
-            document.addEventListener('mousemove', drag);
+            // Add both mouse and touch listeners
+            document.addEventListener('mousemove', drag, { passive: false });
             document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('touchend', endDrag);
+            document.addEventListener('touchcancel', endDrag);
         }
-        
+
         function drag(e) {
             if (!dragState.isDragging) return;
+            e.preventDefault(); // Prevent scrolling on touch
+            
+            // Get coordinates from mouse or touch event
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             
             const container = document.getElementById('graph');
             const containerRect = container.getBoundingClientRect();
             
-            const x = e.clientX - containerRect.left - dragState.offset.x;
-            const y = e.clientY - containerRect.top - dragState.offset.y;
+            const x = clientX - containerRect.left - dragState.offset.x;
+            const y = clientY - containerRect.top - dragState.offset.y;
             
             // Constrain to container bounds
             const constrainedX = Math.max(0, Math.min(x, container.clientWidth - 55));
@@ -634,8 +661,12 @@
             dragState.isDragging = false;
             dragState.neuron = null;
             
+            // Remove all listeners
             document.removeEventListener('mousemove', drag);
             document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('touchend', endDrag);
+            document.removeEventListener('touchcancel', endDrag);
         }
         
         function updateConnectedEdges(neuronElement) {
