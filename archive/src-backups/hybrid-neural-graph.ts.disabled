@@ -52,9 +52,10 @@ export class HybridNeuralGraph {
 
     private setupCustomRenderer(): void {
         // Override MaxGraph's cell rendering to use our custom SVG
-        const originalDrawCell = this.graph.view.drawCell;
+        // Using type assertion due to MaxGraph API evolution
+        const originalDrawCell = (this.graph.view as any).drawCell;
         
-        this.graph.view.drawCell = (state: any) => {
+        (this.graph.view as any).drawCell = (state: any) => {
             // Don't draw the default cell, we'll handle it in SVG
             if (this.isNeuralCell(state.cell)) {
                 this.renderNeuralCell(state);

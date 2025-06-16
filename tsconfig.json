@@ -19,6 +19,8 @@
 	"exclude": [
 		"node_modules",
 		"out",
-		"dist"
+		"dist",
+		"archive",
+		"docs"
 	]
 }

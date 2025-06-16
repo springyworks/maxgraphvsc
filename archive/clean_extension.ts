@@ -368,7 +368,7 @@ function getNeuralNetworkWebviewContent(webview: vscode.Webview, extensionUri: v
         initWasm();
     </script>
 </body>
-</html>\`;
+</html>`;
 }
 
 // This method is called when your extension is deactivated
