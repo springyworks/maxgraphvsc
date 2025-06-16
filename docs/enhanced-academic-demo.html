@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Visualizer - Enhanced Academic Demo</title>
+    <meta name="description" content="Enhanced academic demonstration of neural network visualization with simulated Rust/WASM computation, subtle animations, and professional interactions">
+    <style>
+        body {
+            font-family: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            background: #fafbfc;
+            color: #24292f;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            border-left: 4px solid #ce422b;
+        }
+        .header h1 {
+            color: #24292f;
+            margin-bottom: 8px;
+            font-size: clamp(1.5rem, 4vw, 2.1rem);
+            font-weight: 600;
+        }
+        .header .subtitle {
+            color: #656d76;
+            font-size: clamp(13px, 3vw, 16px);
+            margin-bottom: 12px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        .header .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            font-size: clamp(11px, 2.5vw, 13px);
+            color: #8b949e;
+            flex-wrap: wrap;
+        }
+        .tech-badge {
+            padding: 3px 6px;
+            background: #f6f8fa;
+            border-radius: 8px;
+            border: 1px solid #d0d7de;
+            white-space: nowrap;
+        }
+        .rust-badge { border-color: #ce422b; color: #ce422b; }
+        .wasm-badge { border-color: #654ff0; color: #654ff0; }
+        .js-badge { border-color: #f7df1e; color: #d4af37; }
+        
+        .controls {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .control-group h3 {
+            margin: 0 0 10px 0;
+            color: #24292f;
+            font-size: clamp(12px, 3vw, 14px);
+            font-weight: 600;
+            border-bottom: 1px solid #d0d7de;
+            padding-bottom: 6px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        .control-group button {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: clamp(11px, 2.5vw, 13px);
+            margin-bottom: 6px;
+            transition: all 0.15s ease;
+            font-family: inherit;
+            background: #f6f8fa;
+            color: #24292f;
+        }
+        .btn-primary { 
+            background: #0969da; 
+            color: white; 
+            border-color: #0969da;
+        }
+        .btn-primary:hover { 
+            background: #0860ca; 
+            border-color: #0860ca;
+            transform: translateY(-1px); 
+        }
+        .btn-success { 
+            background: #1a7f37; 
+            color: white; 
+            border-color: #1a7f37;
+        }
+        .btn-success:hover { 
+            background: #116329; 
+            border-color: #116329;
+            transform: translateY(-1px); 
+        }
+        .btn-warning { 
+            background: #bf8700; 
+            color: white; 
+            border-color: #bf8700;
+        }
+        .btn-warning:hover { 
+            background: #9a6700; 
+            border-color: #9a6700;
+            transform: translateY(-1px); 
+        }
+        .btn-danger { 
+            background: #cf222e; 
+            color: white; 
+            border-color: #cf222e;
+        }
+        .btn-danger:hover { 
+            background: #a40e26; 
+            border-color: #a40e26;
+            transform: translateY(-1px); 
+        }
+        
+        .graph-container {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            overflow: hidden;
+            height: clamp(300px, 45vh, 450px);
+            position: relative;
+            border: 1px solid #d0d7de;
+            margin-bottom: 20px;
+        }
+        
+        .neuron {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 9px;
+            cursor: move;
+            user-select: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .neuron:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .neuron.dragging {
+            transition: none;
+            transform: scale(1.08);
+            z-index: 1000;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .neuron.activated {
+            animation: neuron-pulse 0.6s ease-out;
+        }
+        
+        @keyframes neuron-pulse {
+            0% { 
+                transform: scale(1); 
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            }
+            50% { 
+                transform: scale(1.12);
+                box-shadow: 0 0 20px rgba(206, 66, 43, 0.4);
+            }
+            100% { 
+                transform: scale(1); 
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            }
+        }
+        
+        .neuron.processing {
+            animation: neuron-compute 1.2s ease-in-out infinite;
+        }
+        
+        @keyframes neuron-compute {
+            0%, 100% { 
+                border-color: #0969da;
+                background: #dbeafe;
+            }
+            50% { 
+                border-color: #ce422b;
+                background: #fee2e2;
+            }
+        }
+        
+        @keyframes edge-entrance {
+            0% { 
+                transform: scaleX(0);
+                opacity: 0;
+            }
+            100% { 
+                transform: scaleX(1);
+                opacity: 1;
+            }
+        }
+        
+        .edge.entering {
+            animation: edge-entrance 0.6s ease-out;
+        }
+        
+        .input-neuron { 
+            background: #dcfce7; 
+            border-color: #16a34a; 
+            color: #15803d;
+        }
+        .hidden-neuron { 
+            background: #dbeafe; 
+            border-color: #2563eb; 
+            color: #1d4ed8;
+        }
+        .output-neuron { 
+            background: #fed7d7; 
+            border-color: #dc2626; 
+            color: #dc2626;
+        }
+        
+        .edge {
+            position: absolute;
+            height: 2px;
+            background: #6b7280;
+            transform-origin: left center;
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+        
+        .edge.active {
+            background: linear-gradient(90deg, #ce422b, #f97316);
+            height: 3px;
+            animation: signal-flow 0.8s ease-out;
+            z-index: 2;
+        }
+        
+        @keyframes signal-flow {
+            0% {
+                background: linear-gradient(90deg, #ce422b, #ce422b);
+                transform: scaleX(0);
+            }
+            100% {
+                background: linear-gradient(90deg, #ce422b, #f97316);
+                transform: scaleX(1);
+            }
+        }
+        
+        .computation-log {
+            background: #f6f8fa;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(10px, 2vw, 12px);
+            max-height: clamp(120px, 20vh, 200px);
+            overflow-y: auto;
+            color: #24292f;
+        }
+        
+        .log-entry {
+            margin-bottom: 4px;
+            padding: 2px 0;
+        }
+        
+        .log-entry.rust { color: #ce422b; }
+        .log-entry.wasm { color: #654ff0; }
+        .log-entry.info { color: #0969da; }
+        .log-entry.success { color: #1a7f37; }
+        
+        .performance-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(206, 66, 43, 0.1);
+            color: #ce422b;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: clamp(9px, 2vw, 11px);
+            font-weight: 600;
+            border: 1px solid rgba(206, 66, 43, 0.2);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        
+        .status-ready { background: #1a7f37; }
+        .status-computing { 
+            background: #bf8700; 
+            animation: status-pulse 1s ease-in-out infinite;
+        }
+        .status-error { background: #cf222e; }
+        
+        @keyframes status-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .graph-container {
+                height: clamp(250px, 40vh, 350px);
+            }
+            
+            .controls {
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 10px;
+                padding: 12px;
+            }
+            
+            .neuron {
+                width: 45px;
+                height: 45px;
+                font-size: 8px;
+            }
+            
+            .header {
+                padding: 12px 15px;
+                margin-bottom: 10px;
+            }
+            
+            .computation-log {
+                font-size: 10px;
+                max-height: 100px;
+                padding: 8px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .graph-container {
+                height: clamp(200px, 35vh, 280px);
+            }
+            
+            .controls {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .neuron {
+                width: 40px;
+                height: 40px;
+                font-size: 7px;
+            }
+            
+            .tech-stack {
+                gap: 8px;
+            }
+            
+            .tech-badge {
+                font-size: 10px;
+                padding: 2px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Neural Network Visualizer</h1>
+            <div class="subtitle">Enhanced Academic Demo with Rust-Style Computation</div>
+            <div class="tech-stack">
+                <span class="tech-badge rust-badge">🦀 Rust/WASM Backend</span>
+                <span class="tech-badge wasm-badge">⚡ WebAssembly Compute</span>
+                <span class="tech-badge js-badge">🎯 Interactive Frontend</span>
+            </div>
+        </div>
+        
+        <div class="graph-container" id="graph">
+            <div class="performance-badge">
+                <span class="status-indicator status-computing" id="statusIndicator"></span>
+                <span id="performanceText">Initializing...</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <h3>🔄 Network Operations</h3>
+                <button class="btn-primary" onclick="forwardPass()">Forward Pass</button>
+                <button class="btn-success" onclick="trainNetwork()">Train Network</button>
+                <button class="btn-warning" onclick="randomizeWeights()">Randomize Weights</button>
+                <button onclick="resetNetwork()">Reset Network</button>
+            </div>
+            <div class="control-group">
+                <h3>🧪 Experiments</h3>
+                <button class="btn-primary" onclick="simulateRustComputation()">Rust Compute</button>
+                <button class="btn-success" onclick="activateAllNeurons()">Activate Neurons</button>
+                <button class="btn-warning" onclick="showWeightMatrix()">Weight Matrix</button>
+                <button onclick="exportNetworkState()">Export State</button>
+            </div>
+            <div class="control-group">
+                <h3>📊 Visualization</h3>
+                <button class="btn-primary" onclick="animateDataFlow()">Data Flow</button>
+                <button class="btn-success" onclick="highlightArchitecture()">Architecture</button>
+                <button class="btn-warning" onclick="toggleProcessing()">Processing Mode</button>
+                <button onclick="clearLogs()">Clear Logs</button>
+            </div>
+            <div class="control-group">
+                <h3>⚙️ Configuration</h3>
+                <button onclick="addNeuron()">Add Neuron</button>
+                <button onclick="addConnection()">Add Connection</button>
+                <button class="btn-danger" onclick="removeNeuron()">Remove Neuron</button>
+                <button onclick="optimizeLayout()">Optimize Layout</button>
+            </div>
+        </div>
+        
+        <div class="computation-log" id="log">
+            <div class="log-entry info">🚀 Neural Network Visualizer initialized</div>
+            <div class="log-entry rust">🦀 Rust/WASM backend simulated and ready</div>
+            <div class="log-entry wasm">⚡ WebAssembly compute engine online</div>
+            <div class="log-entry success">✅ Interactive visualization active</div>
+        </div>
+    </div>
+
+    <script>
+        // Neural network state
+        let neurons = [];
+        let edges = [];
+        let isProcessing = false;
+        let dragState = { isDragging: false, neuron: null, offset: { x: 0, y: 0 } };
+        
+        // Initialize neural network
+        async function initializeNetwork() {
+            const container = document.getElementById('graph');
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            
+            // Scale positions based on container size, with better centering
+            const scaleX = Math.min(1, containerWidth / 800);
+            const scaleY = Math.min(1, containerHeight / 400); // Adjusted for smaller height
+            
+            // Center the network vertically
+            const offsetY = Math.max(0, (containerHeight - 300 * scaleY) / 2);
+            
+            log('🏗️ Building neural architecture...', 'info');
+            
+            // Create input neurons with staggered timing
+            for (let i = 0; i < 3; i++) {
+                await new Promise(resolve => setTimeout(resolve, 200));
+                const x = (60 + i * 70) * scaleX; // Slightly more compact
+                const y = (80 + i * 50) * scaleY + offsetY; // Better vertical spacing
+                createNeuron('input', x, y, `I${i + 1}`);
+                log(`➕ Input neuron ${i + 1} created`, 'success');
+            }
+            
+            // Create hidden neurons
+            await new Promise(resolve => setTimeout(resolve, 300));
+            for (let i = 0; i < 4; i++) {
+                await new Promise(resolve => setTimeout(resolve, 150));
+                const x = (300 + (i % 2) * 90) * scaleX; // More compact
+                const y = (60 + Math.floor(i / 2) * 100) * scaleY + offsetY;
+                createNeuron('hidden', x, y, `H${i + 1}`);
+                log(`➕ Hidden neuron ${i + 1} created`, 'success');
+            }
+            
+            // Create output neurons
+            await new Promise(resolve => setTimeout(resolve, 300));
+            for (let i = 0; i < 2; i++) {
+                await new Promise(resolve => setTimeout(resolve, 200));
+                const x = 550 * scaleX; // More compact
+                const y = (100 + i * 60) * scaleY + offsetY;
+                createNeuron('output', x, y, `O${i + 1}`);
+                log(`➕ Output neuron ${i + 1} created`, 'success');
+            }
+            
+            // Create connections with delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            log('🔗 Establishing connections...', 'info');
+            await createConnections();
+            
+            log('🔗 Neural network architecture initialized', 'info');
+            setStatus('ready', 'Network Built');
+        }
+        
+        function createNeuron(type, x, y, label) {
+            const neuron = document.createElement('div');
+            neuron.className = `neuron ${type}-neuron entering`;
+            neuron.style.left = `${x}px`;
+            neuron.style.top = `${y}px`;
+            neuron.textContent = label;
+            neuron.dataset.type = type;
+            neuron.dataset.id = `neuron-${neurons.length}`;
+            
+            // Add drag functionality
+            neuron.addEventListener('mousedown', startDrag);
+            
+            document.getElementById('graph').appendChild(neuron);
+            neurons.push({ element: neuron, x, y, type, label, activation: 0 });
+            
+            // Remove entrance animation class after animation completes
+            setTimeout(() => {
+                neuron.classList.remove('entering');
+            }, 800);
+            
+            return neuron;
+        }
+        
+        async function createConnections() {
+            const container = document.getElementById('graph');
+            
+            // Connect input to hidden
+            for (let i = 0; i < 3; i++) {
+                for (let j = 3; j < 7; j++) {
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                    createEdge(neurons[i], neurons[j]);
+                }
+            }
+            
+            // Connect hidden to output
+            await new Promise(resolve => setTimeout(resolve, 200));
+            for (let i = 3; i < 7; i++) {
+                for (let j = 7; j < 9; j++) {
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                    createEdge(neurons[i], neurons[j]);
+                }
+            }
+            
+            log('✅ All connections established', 'success');
+        }
+        
+        function createEdge(from, to) {
+            const edge = document.createElement('div');
+            edge.className = 'edge entering';
+            
+            updateEdgeGeometry(edge, from, to);
+            
+            document.getElementById('graph').appendChild(edge);
+            edges.push({ element: edge, from, to, weight: Math.random() * 2 - 1 });
+            
+            // Remove entrance animation class after animation completes
+            setTimeout(() => {
+                edge.classList.remove('entering');
+            }, 600);
+        }
+        
+        function updateEdgeGeometry(edge, from, to) {
+            const fromRect = from.element.getBoundingClientRect();
+            const toRect = to.element.getBoundingClientRect();
+            const containerRect = document.getElementById('graph').getBoundingClientRect();
+            
+            const fromX = from.x + 27.5;
+            const fromY = from.y + 27.5;
+            const toX = to.x + 27.5;
+            const toY = to.y + 27.5;
+            
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            edge.style.left = `${fromX}px`;
+            edge.style.top = `${fromY}px`;
+            edge.style.width = `${length}px`;
+            edge.style.transform = `rotate(${angle}deg)`;
+        }
+        
+        // Drag functionality
+        function startDrag(e) {
+            e.preventDefault();
+            const neuron = e.target;
+            const rect = neuron.getBoundingClientRect();
+            const containerRect = document.getElementById('graph').getBoundingClientRect();
+            
+            dragState.isDragging = true;
+            dragState.neuron = neuron;
+            dragState.offset = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+            
+            neuron.classList.add('dragging');
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+        }
+        
+        function drag(e) {
+            if (!dragState.isDragging) return;
+            
+            const container = document.getElementById('graph');
+            const containerRect = container.getBoundingClientRect();
+            
+            const x = e.clientX - containerRect.left - dragState.offset.x;
+            const y = e.clientY - containerRect.top - dragState.offset.y;
+            
+            // Constrain to container bounds
+            const constrainedX = Math.max(0, Math.min(x, container.clientWidth - 55));
+            const constrainedY = Math.max(0, Math.min(y, container.clientHeight - 55));
+            
+            dragState.neuron.style.left = `${constrainedX}px`;
+            dragState.neuron.style.top = `${constrainedY}px`;
+            
+            // Update neuron position in data
+            const neuronData = neurons.find(n => n.element === dragState.neuron);
+            if (neuronData) {
+                neuronData.x = constrainedX;
+                neuronData.y = constrainedY;
+            }
+            
+            // Update connected edges
+            updateConnectedEdges(dragState.neuron);
+        }
+        
+        function endDrag() {
+            if (dragState.isDragging && dragState.neuron) {
+                dragState.neuron.classList.remove('dragging');
+            }
+            
+            dragState.isDragging = false;
+            dragState.neuron = null;
+            
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', endDrag);
+        }
+        
+        function updateConnectedEdges(neuronElement) {
+            const neuronData = neurons.find(n => n.element === neuronElement);
+            if (!neuronData) return;
+            
+            edges.forEach(edge => {
+                if (edge.from === neuronData || edge.to === neuronData) {
+                    updateEdgeGeometry(edge.element, edge.from, edge.to);
+                }
+            });
+        }
+        
+        // Neural network operations
+        async function forwardPass() {
+            setStatus('computing', 'Forward Pass');
+            log('🔄 Starting forward pass computation...', 'rust');
+            
+            // Simulate input activation
+            for (let i = 0; i < 3; i++) {
+                await new Promise(resolve => setTimeout(resolve, 200));
+                activateNeuron(neurons[i]);
+                neurons[i].activation = Math.random();
+            }
+            
+            // Hidden layer computation
+            await new Promise(resolve => setTimeout(resolve, 300));
+            log('⚙️ Computing hidden layer activations...', 'wasm');
+            
+            for (let i = 3; i < 7; i++) {
+                await new Promise(resolve => setTimeout(resolve, 150));
+                activateNeuron(neurons[i]);
+                neurons[i].activation = Math.random();
+            }
+            
+            // Output layer computation
+            await new Promise(resolve => setTimeout(resolve, 300));
+            log('📊 Computing output layer...', 'rust');
+            
+            for (let i = 7; i < 9; i++) {
+                await new Promise(resolve => setTimeout(resolve, 150));
+                activateNeuron(neurons[i]);
+                neurons[i].activation = Math.random();
+            }
+            
+            // Animate data flow
+            await animateDataFlow();
+            
+            setStatus('ready', 'Forward Pass Complete');
+            log('✅ Forward pass completed successfully', 'success');
+        }
+        
+        async function trainNetwork() {
+            setStatus('computing', 'Training');
+            log('🎯 Starting training with backpropagation...', 'rust');
+            
+            for (let epoch = 0; epoch < 3; epoch++) {
+                log(`📈 Training epoch ${epoch + 1}/3...`, 'wasm');
+                
+                // Forward pass
+                await forwardPass();
+                
+                // Backward pass
+                await new Promise(resolve => setTimeout(resolve, 500));
+                log('🔄 Computing gradients...', 'rust');
+                
+                // Update weights (visual indication)
+                edges.forEach(edge => {
+                    edge.weight += (Math.random() - 0.5) * 0.1;
+                    edge.element.style.opacity = Math.abs(edge.weight) * 0.5 + 0.3;
+                });
+                
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+            
+            setStatus('ready', 'Training Complete');
+            log('🎉 Training completed - Network optimized!', 'success');
+        }
+        
+        async function simulateRustComputation() {
+            setStatus('computing', 'Rust/WASM Compute');
+            log('🦀 Invoking Rust computation engine...', 'rust');
+            
+            // Simulate heavy computation
+            const startTime = performance.now();
+            
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            const endTime = performance.now();
+            const duration = (endTime - startTime).toFixed(2);
+            
+            log(`⚡ WASM computation completed in ${duration}ms`, 'wasm');
+            log('🔥 Performance: Zero-copy memory access', 'rust');
+            log('✨ Rust safety guarantees maintained', 'rust');
+            
+            setStatus('ready', `Computed in ${duration}ms`);
+        }
+        
+        function activateNeuron(neuron) {
+            neuron.element.classList.add('activated');
+            setTimeout(() => {
+                neuron.element.classList.remove('activated');
+            }, 600);
+        }
+        
+        async function animateDataFlow() {
+            // Activate input connections
+            for (let i = 0; i < 3; i++) {
+                for (let j = 3; j < 7; j++) {
+                    const edge = edges.find(e => e.from === neurons[i] && e.to === neurons[j]);
+                    if (edge) {
+                        edge.element.classList.add('active');
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            // Activate output connections
+            for (let i = 3; i < 7; i++) {
+                for (let j = 7; j < 9; j++) {
+                    const edge = edges.find(e => e.from === neurons[i] && e.to === neurons[j]);
+                    if (edge) {
+                        edge.element.classList.add('active');
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+            }
+            
+            // Clear active states
+            setTimeout(() => {
+                edges.forEach(edge => edge.element.classList.remove('active'));
+            }, 800);
+        }
+        
+        function toggleProcessing() {
+            isProcessing = !isProcessing;
+            
+            neurons.forEach(neuron => {
+                if (isProcessing) {
+                    neuron.element.classList.add('processing');
+                } else {
+                    neuron.element.classList.remove('processing');
+                }
+            });
+            
+            log(isProcessing ? '🔄 Processing mode enabled' : '⏸️ Processing mode disabled', 'info');
+        }
+        
+        function activateAllNeurons() {
+            neurons.forEach((neuron, index) => {
+                setTimeout(() => activateNeuron(neuron), index * 100);
+            });
+            log('⚡ All neurons activated sequentially', 'success');
+        }
+        
+        function randomizeWeights() {
+            edges.forEach(edge => {
+                edge.weight = Math.random() * 2 - 1;
+                edge.element.style.opacity = Math.abs(edge.weight) * 0.5 + 0.3;
+            });
+            log('🎲 Network weights randomized', 'info');
+        }
+        
+        function resetNetwork() {
+            neurons.forEach(neuron => {
+                neuron.element.classList.remove('activated', 'processing');
+                neuron.activation = 0;
+            });
+            
+            edges.forEach(edge => {
+                edge.element.classList.remove('active');
+                edge.weight = Math.random() * 2 - 1;
+                edge.element.style.opacity = 0.6;
+            });
+            
+            isProcessing = false;
+            setStatus('ready', 'Network Reset');
+            log('🔄 Network state reset to initial configuration', 'info');
+        }
+        
+        function optimizeLayout() {
+            log('🎯 Optimizing network layout...', 'info');
+            
+            const container = document.getElementById('graph');
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            const scaleX = Math.min(1, containerWidth / 800);
+            const scaleY = Math.min(1, containerHeight / 400);
+            const offsetY = Math.max(0, (containerHeight - 300 * scaleY) / 2);
+            
+            // Animate to optimized positions
+            neurons.forEach((neuron, index) => {
+                let targetX, targetY;
+                
+                if (index < 3) { // Input layer
+                    targetX = (60 + index * 70) * scaleX;
+                    targetY = (80 + index * 50) * scaleY + offsetY;
+                } else if (index < 7) { // Hidden layer
+                    const hiddenIndex = index - 3;
+                    targetX = (300 + (hiddenIndex % 2) * 90) * scaleX;
+                    targetY = (60 + Math.floor(hiddenIndex / 2) * 100) * scaleY + offsetY;
+                } else { // Output layer
+                    const outputIndex = index - 7;
+                    targetX = 550 * scaleX;
+                    targetY = (100 + outputIndex * 60) * scaleY + offsetY;
+                }
+                
+                // Animate to target position
+                neuron.element.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+                neuron.element.style.left = `${targetX}px`;
+                neuron.element.style.top = `${targetY}px`;
+                
+                neuron.x = targetX;
+                neuron.y = targetY;
+                
+                setTimeout(() => {
+                    neuron.element.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+                    updateConnectedEdges(neuron.element);
+                }, 100);
+            });
+            
+            setTimeout(() => {
+                edges.forEach(edge => {
+                    updateEdgeGeometry(edge.element, edge.from, edge.to);
+                });
+                log('✅ Layout optimization complete', 'success');
+            }, 900);
+        }
+        
+        // Utility functions
+        function setStatus(status, text) {
+            const indicator = document.getElementById('statusIndicator');
+            const performanceText = document.getElementById('performanceText');
+            
+            indicator.className = `status-indicator status-${status}`;
+            performanceText.textContent = text;
+        }
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `${new Date().toLocaleTimeString()} ${message}`;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function clearLogs() {
+            const logContainer = document.getElementById('log');
+            logContainer.innerHTML = '<div class="log-entry info">🧹 Logs cleared</div>';
+        }
+        
+        function exportNetworkState() {
+            const state = {
+                neurons: neurons.map(n => ({
+                    type: n.type,
+                    x: n.x,
+                    y: n.y,
+                    label: n.label,
+                    activation: n.activation
+                })),
+                weights: edges.map(e => e.weight),
+                timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'neural-network-state.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            log('💾 Network state exported successfully', 'success');
+        }
+        
+        function showWeightMatrix() {
+            log('📊 Weight Matrix:', 'info');
+            edges.forEach((edge, index) => {
+                const weight = edge.weight.toFixed(4);
+                log(`  ${edge.from.label} → ${edge.to.label}: ${weight}`, 'wasm');
+            });
+        }
+        
+        function highlightArchitecture() {
+            neurons.forEach((neuron, index) => {
+                setTimeout(() => {
+                    neuron.element.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        neuron.element.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 100);
+            });
+            log('🏗️ Network architecture highlighted', 'info');
+        }
+        
+        // Placeholder functions for additional controls
+        function addNeuron() {
+            log('➕ Add neuron functionality (placeholder)', 'info');
+        }
+        
+        function addConnection() {
+            log('🔗 Add connection functionality (placeholder)', 'info');
+        }
+        
+        function removeNeuron() {
+            log('➖ Remove neuron functionality (placeholder)', 'info');
+        }
+        
+        // Initialize the network when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeNetwork();
+            log('🚀 Enhanced Academic Demo ready for interaction', 'success');
+            
+            // Start welcome animation sequence
+            setTimeout(() => {
+                welcomeAnimation();
+            }, 500);
+        });
+        
+        // Welcome animation sequence that plays automatically
+        async function welcomeAnimation() {
+            log('🎬 Starting welcome demonstration...', 'info');
+            setStatus('computing', 'Welcome Demo');
+            
+            // First, show architecture highlight
+            await highlightArchitecture();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Then run a forward pass
+            await forwardPass();
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Enable processing mode briefly
+            toggleProcessing();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            toggleProcessing();
+            
+            // Show data flow
+            await animateDataFlow();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Final activation wave
+            await activateAllNeurons();
+            
+            setStatus('ready', 'Interactive Demo Ready');
+            log('✨ Welcome demonstration complete - Try the controls!', 'success');
+        }
+    </script>
+</body>
+</html>

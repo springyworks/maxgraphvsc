@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaxGraph Hybrid Neural Network Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .demo-tabs {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+        .tab-button.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .tab-button:hover {
+            background: #f0f0f0;
+        }
+        .tab-button.active:hover {
+            background: #45a049;
+        }
+        .demo-content {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .tab-panel {
+            display: none;
+            padding: 20px;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        .graph-container {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .controls {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .control-group label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+        button {
+            padding: 8px 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .info-panel {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .neural-node {
+            fill: #4CAF50;
+            stroke: #388E3C;
+            stroke-width: 2;
+            cursor: move;
+            transition: all 0.3s ease;
+        }
+        .neural-node:hover {
+            fill: #66BB6A;
+            stroke: #2E7D32;
+            stroke-width: 3;
+        }
+        .neural-edge {
+            stroke: #666;
+            stroke-width: 2;
+            fill: none;
+        }
+        .neural-edge.strong {
+            stroke: #FF5722;
+            stroke-width: 3;
+        }
+        .neural-edge.weak {
+            stroke: #E0E0E0;
+            stroke-width: 1;
+        }
+        .node-label {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            fill: white;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MaxGraph Hybrid Neural Network Demo</h1>
+            <p>Combining MaxGraph's powerful graph engine with custom neural network visualization</p>
+        </div>
+
+        <div class="demo-tabs">
+            <button class="tab-button active" onclick="showTab('hybrid')">Hybrid Approach</button>
+            <button class="tab-button" onclick="showTab('pure-maxgraph')">Pure MaxGraph</button>
+            <button class="tab-button" onclick="showTab('comparison')">Comparison</button>
+            <button class="tab-button" onclick="showTab('wasm-integration')">WASM Integration</button>
+        </div>
+
+        <div class="demo-content">
+            <!-- Hybrid Approach Tab -->
+            <div id="hybrid" class="tab-panel active">
+                <h3>Hybrid: MaxGraph Engine + Custom Neural Rendering</h3>
+                <div class="controls">
+                    <button onclick="addNeuron()">Add Neuron</button>
+                    <button onclick="addConnection()">Add Connection</button>
+                    <button onclick="runLayout()">Auto Layout</button>
+                    <button onclick="simulateForward()">Forward Pass</button>
+                    <div class="control-group">
+                        <label>Learning Rate:</label>
+                        <input type="range" id="learningRate" min="0.01" max="1" step="0.01" value="0.1">
+                        <span id="learningRateValue">0.1</span>
+                    </div>
+                </div>
+                <div id="hybrid-graph" class="graph-container"></div>
+                <div class="info-panel">
+                    <strong>Hybrid Approach Benefits:</strong>
+                    <ul>
+                        <li>✅ MaxGraph handles graph structure, events, and layout algorithms</li>
+                        <li>✅ Custom SVG rendering for neural-specific visualization</li>
+                        <li>✅ Full control over neural network appearance and interactions</li>
+                        <li>✅ Leverage MaxGraph's mature event system and undo/redo</li>
+                        <li>✅ Easy integration with Rust/WASM for neural computations</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Pure MaxGraph Tab -->
+            <div id="pure-maxgraph" class="tab-panel">
+                <h3>Pure MaxGraph Approach</h3>
+                <div class="controls">
+                    <button onclick="addMaxGraphNode()">Add Node</button>
+                    <button onclick="addMaxGraphEdge()">Add Edge</button>
+                    <button onclick="runMaxGraphLayout()">Auto Layout</button>
+                </div>
+                <div id="maxgraph-container" class="graph-container"></div>
+                <div class="info-panel">
+                    <strong>Pure MaxGraph Approach:</strong>
+                    <ul>
+                        <li>✅ Quick to implement with built-in shapes</li>
+                        <li>✅ All MaxGraph features available out-of-the-box</li>
+                        <li>❌ Limited customization for neural-specific needs</li>
+                        <li>❌ Standard shapes may not fit neural network aesthetics</li>
+                        <li>❌ Harder to integrate domain-specific interactions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Comparison Tab -->
+            <div id="comparison" class="tab-panel">
+                <h3>Approach Comparison</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <thead>
+                        <tr style="background: #f0f0f0;">
+                            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Feature</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Pure SVG</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Pure MaxGraph</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Hybrid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd;">Custom Rendering</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Full</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">❌ Limited</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Full</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd;">Layout Algorithms</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">❌ Manual</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Built-in</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Built-in</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd;">Event System</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">❌ Manual</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Robust</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Robust</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd;">Undo/Redo</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">❌ Manual</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Built-in</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Built-in</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd;">WASM Integration</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Easy</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">⚠️ Medium</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Easy</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd;">Development Time</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">❌ High</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Low</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">⚠️ Medium</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd;">Neural Aesthetics</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Perfect</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">❌ Limited</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">✅ Perfect</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="info-panel" style="margin-top: 20px;">
+                    <strong>Recommendation:</strong> The hybrid approach gives you the best of both worlds - 
+                    MaxGraph's powerful graph management with complete control over neural network visualization.
+                    This is perfect for a professional neural network tool that needs both functionality and aesthetics.
+                </div>
+            </div>
+
+            <!-- WASM Integration Tab -->
+            <div id="wasm-integration" class="tab-panel">
+                <h3>WASM Integration Architecture</h3>
+                <div class="controls">
+                    <button onclick="loadWASMModule()">Load WASM</button>
+                    <button onclick="syncGraphToWASM()">Sync to WASM</button>
+                    <button onclick="runWASMComputation()">Run Computation</button>
+                </div>
+                <div id="wasm-status" style="padding: 10px; background: #f0f0f0; border-radius: 4px; margin-bottom: 15px;">
+                    WASM Status: Not loaded
+                </div>
+                <pre id="wasm-output" style="background: #2d2d2d; color: #f0f0f0; padding: 15px; border-radius: 4px; max-height: 300px; overflow-y: auto;"></pre>
+                <div class="info-panel">
+                    <strong>Hybrid + WASM Architecture:</strong>
+                    <ol>
+                        <li><strong>MaxGraph Layer:</strong> Handles graph structure, events, layouts</li>
+                        <li><strong>Custom SVG Layer:</strong> Renders neural-specific visualizations</li>
+                        <li><strong>WASM Backend:</strong> Performs neural network computations</li>
+                        <li><strong>JavaScript Bridge:</strong> Coordinates between all layers</li>
+                    </ol>
+                    <p>This architecture allows you to leverage MaxGraph's maturity while maintaining 
+                    full control over both visualization and computation.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- We'll load MaxGraph via CDN for this demo, but in production use npm -->
+    <script type="module">
+        // Import MaxGraph (in a real project, you'd import from your build)
+        // For this demo, we'll simulate the MaxGraph API
+        
+        let hybridGraph = null;
+        let pureMaxGraph = null;
+        let wasmModule = null;
+        let neuronCounter = 0;
+        let connectionCounter = 0;
+
+        // Initialize the hybrid demo
+        function initHybridDemo() {
+            const container = document.getElementById('hybrid-graph');
+            
+            // Create SVG container for custom rendering
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            
+            // Add some sample neurons
+            const neurons = [
+                { id: 'n1', x: 100, y: 150, label: 'Input 1', type: 'input' },
+                { id: 'n2', x: 100, y: 250, label: 'Input 2', type: 'input' },
+                { id: 'n3', x: 300, y: 150, label: 'Hidden 1', type: 'hidden' },
+                { id: 'n4', x: 300, y: 250, label: 'Hidden 2', type: 'hidden' },
+                { id: 'n5', x: 500, y: 200, label: 'Output', type: 'output' }
+            ];
+            
+            const connections = [
+                { from: 'n1', to: 'n3', weight: 0.8 },
+                { from: 'n1', to: 'n4', weight: 0.6 },
+                { from: 'n2', to: 'n3', weight: 0.7 },
+                { from: 'n2', to: 'n4', weight: 0.9 },
+                { from: 'n3', to: 'n5', weight: 0.5 },
+                { from: 'n4', to: 'n5', weight: 0.8 }
+            ];
+            
+            // Render connections first (so they appear behind neurons)
+            connections.forEach(conn => {
+                const fromNeuron = neurons.find(n => n.id === conn.from);
+                const toNeuron = neurons.find(n => n.id === conn.to);
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', fromNeuron.x + 25);
+                line.setAttribute('y1', fromNeuron.y + 25);
+                line.setAttribute('x2', toNeuron.x + 25);
+                line.setAttribute('y2', toNeuron.y + 25);
+                line.classList.add('neural-edge');
+                if (conn.weight > 0.7) line.classList.add('strong');
+                else if (conn.weight < 0.6) line.classList.add('weak');
+                
+                svg.appendChild(line);
+            });
+            
+            // Render neurons
+            neurons.forEach(neuron => {
+                const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                group.setAttribute('transform', `translate(${neuron.x}, ${neuron.y})`);
+                
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', 25);
+                circle.setAttribute('cy', 25);
+                circle.setAttribute('r', 25);
+                circle.classList.add('neural-node');
+                
+                // Color code by type
+                if (neuron.type === 'input') circle.style.fill = '#2196F3';
+                else if (neuron.type === 'output') circle.style.fill = '#FF5722';
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', 25);
+                text.setAttribute('y', 25);
+                text.classList.add('node-label');
+                text.textContent = neuron.label;
+                
+                group.appendChild(circle);
+                group.appendChild(text);
+                
+                // Add drag functionality (this is where MaxGraph would help!)
+                let isDragging = false;
+                group.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    e.preventDefault();
+                });
+                
+                svg.appendChild(group);
+            });
+            
+            container.appendChild(svg);
+            
+            // Simulate MaxGraph integration
+            hybridGraph = {
+                neurons: neurons,
+                connections: connections,
+                svg: svg,
+                container: container
+            };
+        }
+
+        // Initialize pure MaxGraph demo (simulated)
+        function initPureMaxGraphDemo() {
+            const container = document.getElementById('maxgraph-container');
+            container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-style: italic;">MaxGraph Pure Implementation (Simulated)</div>';
+        }
+
+        // Tab switching
+        window.showTab = function(tabName) {
+            // Hide all panels
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected panel and activate button
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        };
+
+        // Control functions
+        window.addNeuron = function() {
+            neuronCounter++;
+            console.log(`Added neuron ${neuronCounter}`);
+            // In real implementation, this would use MaxGraph's insertVertex
+        };
+
+        window.addConnection = function() {
+            connectionCounter++;
+            console.log(`Added connection ${connectionCounter}`);
+            // In real implementation, this would use MaxGraph's insertEdge
+        };
+
+        window.runLayout = function() {
+            console.log('Running auto layout...');
+            // This is where MaxGraph's layout algorithms would shine
+        };
+
+        window.simulateForward = function() {
+            console.log('Simulating forward pass...');
+            // This would trigger WASM computation
+        };
+
+        window.addMaxGraphNode = function() {
+            console.log('Adding MaxGraph node...');
+        };
+
+        window.addMaxGraphEdge = function() {
+            console.log('Adding MaxGraph edge...');
+        };
+
+        window.runMaxGraphLayout = function() {
+            console.log('Running MaxGraph layout...');
+        };
+
+        window.loadWASMModule = function() {
+            const statusDiv = document.getElementById('wasm-status');
+            const outputDiv = document.getElementById('wasm-output');
+            
+            statusDiv.textContent = 'WASM Status: Loading...';
+            outputDiv.textContent = 'Loading WASM module...\n';
+            
+            // Simulate WASM loading
+            setTimeout(() => {
+                statusDiv.textContent = 'WASM Status: Loaded ✅';
+                outputDiv.textContent += 'WASM module loaded successfully!\nNeural network engine initialized.\n';
+                wasmModule = { loaded: true };
+            }, 1000);
+        };
+
+        window.syncGraphToWASM = function() {
+            const outputDiv = document.getElementById('wasm-output');
+            if (!wasmModule) {
+                outputDiv.textContent += 'Error: WASM module not loaded\n';
+                return;
+            }
+            
+            outputDiv.textContent += 'Syncing graph structure to WASM...\n';
+            outputDiv.textContent += 'Graph synchronized: 5 neurons, 6 connections\n';
+        };
+
+        window.runWASMComputation = function() {
+            const outputDiv = document.getElementById('wasm-output');
+            if (!wasmModule) {
+                outputDiv.textContent += 'Error: WASM module not loaded\n';
+                return;
+            }
+            
+            outputDiv.textContent += 'Running neural network computation...\n';
+            outputDiv.textContent += 'Forward pass: [0.23, 0.89] -> [0.67]\n';
+            outputDiv.textContent += 'Computation completed in 2.3ms\n';
+        };
+
+        // Learning rate slider
+        document.getElementById('learningRate').addEventListener('input', function(e) {
+            document.getElementById('learningRateValue').textContent = e.target.value;
+        });
+
+        // Initialize demos when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initHybridDemo();
+            initPureMaxGraphDemo();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Visualization Test</title>
+    <script src="https://unpkg.com/@maxgraph/core@0.10.2/dist/maxgraph.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: #cccccc;
+        }
+        .loading-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #cccccc;
+            font-size: 16px;
+            z-index: 1000;
+        }
+        #graphContainer {
+            width: 100%;
+            height: 70vh;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background-color: #1e1e1e;
+            position: relative;
+            overflow: hidden;
+        }
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            background-color: #007ACC;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        .info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #2d2d30;
+            border-left: 4px solid #007ACC;
+            border-radius: 4px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.connected {
+            background-color: #28a745;
+            color: white;
+        }
+        .status.disconnected {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧠 D-LinOSS Neural Network Visualization</h1>
+    
+    <div class="controls">
+        <button onclick="createSampleNetwork()">🔮 Create Sample Network</button>
+        <button onclick="createComplexNetwork()">🧠 Complex Neural Network</button>
+        <button onclick="animateNetwork()">⚡ Animate Neural Flow</button>
+        <button onclick="connectToRustProfiler()">🔗 Connect to Rust Profiler</button>
+        <button onclick="clearNetwork()">🧹 Clear Network</button>
+        <span class="status disconnected" id="connectionStatus">Disconnected</span>
+    </div>
+
+    <div id="graphContainer"></div>
+
+    <div class="info">
+        <h3>📊 Real-time Neural Network Dynamics</h3>
+        <p><strong>MaxGraph Integration:</strong> Interactive neural network visualization with real-time updates</p>
+        <p><strong>D-LinOSS Brain Dynamics:</strong> Ready to receive neural network profiling data from Rust burn profiler</p>
+        <div id="networkStats"></div>
+    </div>
+
+    <script>
+        // Immediate fallback neural network visualization (no external dependencies)
+        let neurons = [];
+        let connections = [];
+        let dragState = { isDragging: false, draggedElement: null, startX: 0, startY: 0, initialX: 0, initialY: 0 };
+
+        function initializeNeuralNetwork() {
+            const container = document.getElementById('graphContainer');
+            console.log('🚀 Initializing neural network...', container);
+            
+            if (!container) {
+                console.error('❌ Container not found!');
+                return;
+            }
+            
+            container.innerHTML = `
+                <div id="neuronCanvas" style="position: relative; width: 100%; height: 100%; background: #1e1e1e;">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #cccccc;">
+                        <h3>🧠 Interactive Neural Network Ready!</h3>
+                        <p>Click "🔮 Create Sample Network" above to see draggable neurons!</p>
+                        <div style="margin-top: 20px; padding: 10px; background: #28a745; color: white; border-radius: 4px;">
+                            ✅ System Status: Ready for Neural Networks
+                        </div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #888;">
+                            Debug: Container found and initialized at ${new Date().toLocaleTimeString()}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Set up drag system
+            setupDragSystem();
+            
+            console.log('✅ Neural network system ready');
+            const statsElement = document.getElementById('networkStats');
+            if (statsElement) {
+                statsElement.innerHTML = '<strong>✅ Neural Network Ready!</strong> Click buttons to create networks.';
+            }
+        }
+
+        function setupDragSystem() {
+            const canvas = document.getElementById('neuronCanvas');
+            if (!canvas) return;
+            
+            canvas.addEventListener('mousedown', function(e) {
+                const neuron = e.target.closest('.neuron');
+                if (!neuron) return;
+                
+                dragState.isDragging = true;
+                dragState.draggedElement = neuron;
+                dragState.startX = e.clientX;
+                dragState.startY = e.clientY;
+                dragState.initialX = neuron.offsetLeft;
+                dragState.initialY = neuron.offsetTop;
+                
+                neuron.style.transform = 'scale(1.1)';
+                neuron.style.zIndex = '1001';
+                highlightConnections(neuron, true);
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (!dragState.isDragging || !dragState.draggedElement) return;
+                
+                const deltaX = e.clientX - dragState.startX;
+                const deltaY = e.clientY - dragState.startY;
+                const newX = dragState.initialX + deltaX;
+                const newY = dragState.initialY + deltaY;
+                
+                dragState.draggedElement.style.left = newX + 'px';
+                dragState.draggedElement.style.top = newY + 'px';
+                
+                updateAllConnections();
+            });
+            
+            document.addEventListener('mouseup', function(e) {
+                if (!dragState.isDragging || !dragState.draggedElement) return;
+                
+                const neuron = dragState.draggedElement;
+                neuron.style.transform = 'scale(1)';
+                neuron.style.zIndex = '1000';
+                highlightConnections(neuron, false);
+                
+                dragState.isDragging = false;
+                dragState.draggedElement = null;
+            });
+        }
+
+        function createSampleNetwork() {
+            clearNetwork();
+            const canvas = document.getElementById('neuronCanvas');
+            canvas.innerHTML = '<svg id="connectionSvg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500;"></svg>';
+            
+            // Create input layer
+            const inputNeurons = [];
+            for (let i = 0; i < 4; i++) {
+                const neuron = createNeuron(50, 80 + i * 70, `I${i+1}`, 'input');
+                inputNeurons.push(neuron);
+                canvas.appendChild(neuron);
+            }
+            
+            // Create hidden layer
+            const hiddenNeurons = [];
+            for (let i = 0; i < 6; i++) {
+                const neuron = createNeuron(200, 50 + i * 55, `H${i+1}`, 'hidden');
+                hiddenNeurons.push(neuron);
+                canvas.appendChild(neuron);
+            }
+            
+            // Create output layer
+            const outputNeurons = [];
+            for (let i = 0; i < 2; i++) {
+                const neuron = createNeuron(350, 120 + i * 80, `O${i+1}`, 'output');
+                outputNeurons.push(neuron);
+                canvas.appendChild(neuron);
+            }
+            
+            // Create connections
+            neurons = [...inputNeurons, ...hiddenNeurons, ...outputNeurons];
+            connections = [];
+            
+            // Connect input to hidden
+            inputNeurons.forEach(input => {
+                hiddenNeurons.forEach(hidden => {
+                    connections.push({ source: input, target: hidden });
+                });
+            });
+            
+            // Connect hidden to output
+            hiddenNeurons.forEach(hidden => {
+                outputNeurons.forEach(output => {
+                    connections.push({ source: hidden, target: output });
+                });
+            });
+            
+            drawAllConnections();
+            updateNetworkStats({
+                neurons: neurons.length,
+                connections: connections.length,
+                layers: 3
+            });
+        }
+
+        function createComplexNetwork() {
+            clearNetwork();
+            const canvas = document.getElementById('neuronCanvas');
+            canvas.innerHTML = '<svg id="connectionSvg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500;"></svg>';
+            
+            // Create multiple layers with varying sizes
+            const layers = [
+                { count: 6, x: 30, label: 'I', type: 'input' },
+                { count: 8, x: 130, label: 'H1', type: 'hidden' },
+                { count: 6, x: 230, label: 'H2', type: 'hidden' },
+                { count: 4, x: 330, label: 'H3', type: 'hidden' },
+                { count: 3, x: 430, label: 'O', type: 'output' }
+            ];
+            
+            const allLayers = [];
+            neurons = [];
+            connections = [];
+            
+            layers.forEach(layerSpec => {
+                const layer = [];
+                const startY = 50 + (8 - layerSpec.count) * 20; // Center the layer
+                
+                for (let i = 0; i < layerSpec.count; i++) {
+                    const neuron = createNeuron(
+                        layerSpec.x, 
+                        startY + i * 45, 
+                        `${layerSpec.label}${i+1}`, 
+                        layerSpec.type
+                    );
+                    layer.push(neuron);
+                    neurons.push(neuron);
+                    canvas.appendChild(neuron);
+                }
+                allLayers.push(layer);
+            });
+            
+            // Connect all adjacent layers
+            for (let i = 0; i < allLayers.length - 1; i++) {
+                allLayers[i].forEach(source => {
+                    allLayers[i + 1].forEach(target => {
+                        connections.push({ source, target });
+                    });
+                });
+            }
+            
+            drawAllConnections();
+            
+            const totalConnections = layers.slice(0, -1).reduce((sum, layer, i) => 
+                sum + layer.count * layers[i + 1].count, 0);
+            
+            updateNetworkStats({
+                neurons: neurons.length,
+                connections: totalConnections,
+                layers: layers.length
+            });
+        }
+
+        function createNeuron(x, y, label, type) {
+            const colors = {
+                'input': '#4CAF50',
+                'hidden': '#2196F3', 
+                'output': '#FF9800'
+            };
+            
+            const neuron = document.createElement('div');
+            neuron.className = 'neuron';
+            neuron.setAttribute('data-label', label);
+            neuron.setAttribute('data-type', type);
+            neuron.style.cssText = `
+                position: absolute;
+                left: ${x}px;
+                top: ${y}px;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background-color: ${colors[type]};
+                color: white;
+                font-weight: bold;
+                font-size: 11px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: move;
+                user-select: none;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                transition: transform 0.1s;
+                z-index: 1000;
+                border: 2px solid rgba(255,255,255,0.3);
+            `;
+            neuron.textContent = label;
+            return neuron;
+        }
+
+        function drawAllConnections() {
+            const svg = document.getElementById('connectionSvg');
+            if (!svg) return;
+            
+            svg.innerHTML = '';
+            connections.forEach(conn => {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                const sourceX = conn.source.offsetLeft + 25;
+                const sourceY = conn.source.offsetTop + 25;
+                const targetX = conn.target.offsetLeft + 25;
+                const targetY = conn.target.offsetTop + 25;
+                
+                line.setAttribute('x1', sourceX);
+                line.setAttribute('y1', sourceY);
+                line.setAttribute('x2', targetX);
+                line.setAttribute('y2', targetY);
+                line.setAttribute('stroke', '#666666');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('opacity', '0.7');
+                
+                svg.appendChild(line);
+            });
+        }
+
+        function updateAllConnections() {
+            drawAllConnections();
+        }
+
+        function highlightConnections(neuron, highlight) {
+            const svg = document.getElementById('connectionSvg');
+            if (!svg) return;
+            
+            const lines = svg.querySelectorAll('line');
+            connections.forEach((conn, index) => {
+                if (conn.source === neuron || conn.target === neuron) {
+                    const line = lines[index];
+                    if (line) {
+                        if (highlight) {
+                            line.setAttribute('stroke', '#ffff00');
+                            line.setAttribute('stroke-width', '3');
+                            line.setAttribute('opacity', '1.0');
+                        } else {
+                            line.setAttribute('stroke', '#666666');
+                            line.setAttribute('stroke-width', '2');
+                            line.setAttribute('opacity', '0.7');
+                        }
+                    }
+                }
+            });
+        }
+
+        function animateNetwork() {
+            // Simple animation effect
+            neurons.forEach((neuron, index) => {
+                setTimeout(() => {
+                    neuron.style.transform = 'scale(1.2)';
+                    neuron.style.boxShadow = '0 0 20px rgba(255, 255, 0, 0.8)';
+                    setTimeout(() => {
+                        neuron.style.transform = 'scale(1)';
+                        neuron.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+                    }, 200);
+                }, index * 50);
+            });
+        }
+
+        function connectToRustProfiler() {
+            const status = document.getElementById('connectionStatus');
+            status.textContent = 'Connecting...';
+            status.className = 'status disconnected';
+            
+            // Simulate connection attempt
+            setTimeout(() => {
+                status.textContent = 'Connected to Rust Profiler';
+                status.className = 'status connected';
+                
+                document.getElementById('networkStats').innerHTML += 
+                    '<br><strong>🦀 Rust Integration:</strong> Ready to receive profiling data!';
+            }, 1500);
+        }
+
+        function clearNetwork() {
+            const canvas = document.getElementById('neuronCanvas');
+            if (canvas) {
+                canvas.innerHTML = `
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #cccccc;">
+                        <h3>🧠 Interactive Neural Network</h3>
+                        <p>Click a button above to create your neural network!</p>
+                    </div>
+                `;
+            }
+            neurons = [];
+            connections = [];
+            updateNetworkStats({ neurons: 0, connections: 0, layers: 0 });
+        }
+
+        function updateNetworkStats(stats) {
+            document.getElementById('networkStats').innerHTML = `
+                <strong>📊 Network Statistics:</strong><br>
+                Layers: ${stats.layers} | Neurons: ${stats.neurons} | Connections: ${stats.connections}<br>
+                <em>Drag neurons to see real-time connection updates!</em>
+            `;
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', function() {
+            console.log('🚀 Neural Network Visualization Page Loading...');
+            try {
+                initializeNeuralNetwork();
+                console.log('✅ Neural Network Visualization Ready');
+            } catch (error) {
+                console.error('❌ Error initializing neural network:', error);
+                document.getElementById('graphContainer').innerHTML = `
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #cccccc;">
+                        <h3>❌ Error Loading Neural Network</h3>
+                        <p>Error: ${error.message}</p>
+                        <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: #007ACC; color: white; border: none; border-radius: 4px; cursor: pointer;">🔄 Retry</button>
+                    </div>
+                `;
+            }
+        });
+
+        // Also try to initialize immediately in case load event already fired
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔥 DOM Content Loaded - attempting early initialization...');
+            setTimeout(() => {
+                try {
+                    if (document.getElementById('graphContainer')) {
+                        initializeNeuralNetwork();
+                        console.log('✅ Early initialization successful');
+                    }
+                } catch (error) {
+                    console.log('⚠️ Early initialization failed, will retry on window load:', error.message);
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>

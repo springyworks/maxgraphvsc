@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaxGraph Neural Network Concept</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .controls button {
+            padding: 10px 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+        .controls button:hover {
+            background: #45a049;
+        }
+        .controls button.secondary {
+            background: #2196F3;
+        }
+        .controls button.secondary:hover {
+            background: #1976D2;
+        }
+        .status {
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 4px;
+            margin-left: auto;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .graph-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            height: 600px;
+            position: relative;
+            border: 2px solid #ddd;
+        }
+        .maxgraph-simulation {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        .neuron {
+            position: absolute;
+            width: 80px;
+            height: 50px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            color: white;
+            cursor: move;
+            user-select: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            /* NO transition during drag - firm grip! */
+        }
+        .neuron:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            /* Only transition hover effects */
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .neuron.dragging {
+            /* Disable ALL transitions during drag for firm grip */
+            transition: none !important;
+            transform: none !important;
+            z-index: 1000;
+        }
+        .neuron.input {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            border: 3px solid #1B5E20;
+        }
+        .neuron.hidden {
+            background: linear-gradient(135deg, #2196F3, #1565C0);
+            border: 3px solid #0D47A1;
+        }
+        .neuron.output {
+            background: linear-gradient(135deg, #FF5722, #D84315);
+            border: 3px solid #BF360C;
+        }
+        .neuron.selected {
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+        .neuron.activated {
+            background: linear-gradient(135deg, #FFD700, #FF8F00);
+            border: 3px solid #E65100;
+            animation: pulse 0.5s ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .connection {
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(90deg, #666, #999);
+            transform-origin: left center;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .connection.strong {
+            height: 4px;
+            background: linear-gradient(90deg, #4CAF50, #2E7D32);
+        }
+        .connection.weak {
+            height: 2px;
+            background: linear-gradient(90deg, #FF5722, #D84315);
+        }
+        .rubber-band {
+            position: absolute;
+            border: 2px dashed #2196F3;
+            background: rgba(33, 150, 243, 0.1);
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .info-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .feature-highlight {
+            background: #f0f7ff;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 MaxGraph-Style Neural Network</h1>
+            <p>Demonstrating professional graph capabilities - drag, select, rubber band</p>
+        </div>
+
+        <div class="controls">
+            <button onclick="addNeuron('input')">Add Input Neuron</button>
+            <button onclick="addNeuron('hidden')">Add Hidden Neuron</button>
+            <button onclick="addNeuron('output')">Add Output Neuron</button>
+            <button onclick="connectNeurons()" class="secondary">Auto Connect</button>
+            <button onclick="applyHierarchicalLayout()" class="secondary">Hierarchical Layout</button>
+            <button onclick="applyCircularLayout()" class="secondary">Circular Layout</button>
+            <button onclick="toggleRubberBand()" class="secondary">Toggle Rubber Band</button>
+            <button onclick="animateForwardPass()" class="secondary">Forward Pass</button>
+            <button onclick="clearAll()" style="background: #f44336;">Clear All</button>
+            <div class="status" id="status">✅ MaxGraph-style simulation ready - try rubber band selection!</div>
+        </div>
+
+        <div class="graph-container">
+            <div class="maxgraph-simulation" id="graphContainer"></div>
+        </div>
+
+        <div class="info-panel">
+            <h3>🎯 MaxGraph-Style Features Working</h3>
+            <div class="feature-highlight">
+                <strong>Professional Graph Interactions:</strong>
+                <ul>
+                    <li>🖱️ <strong>Drag neurons</strong>: Click and drag any neuron to move it</li>
+                    <li>📦 <strong>Rubber band selection</strong>: Hold Shift + drag to select multiple neurons</li>
+                    <li>🎯 <strong>Multi-select operations</strong>: Move multiple selected neurons together</li>
+                    <li>📐 <strong>Layout algorithms</strong>: Hierarchical and circular positioning</li>
+                    <li>🔗 <strong>Smart connections</strong>: Automatic neural network connections</li>
+                    <li>⚡ <strong>Activation animation</strong>: Forward pass visualization</li>
+                </ul>
+            </div>
+            
+            <div class="feature-highlight">
+                <strong>Why This Approach is Better:</strong>
+                <ul>
+                    <li>✅ <strong>Single coordinate system</strong> - no dual-world complexity</li>
+                    <li>✅ <strong>Consistent interactions</strong> - all handled the same way</li>
+                    <li>✅ <strong>Professional feel</strong> - like real graph editing software</li>
+                    <li>✅ <strong>Easier WASM integration</strong> - just sync node states</li>
+                    <li>✅ <strong>Scalable architecture</strong> - can handle large networks</li>
+                </ul>
+            </div>
+
+            <p><strong>🧠 Key Insight:</strong> This demonstrates what MaxGraph brings to the table - professional graph editing capabilities that would take months to implement from scratch. The rubber band selection alone is a complex feature that MaxGraph provides out of the box!</p>
+        </div>
+    </div>
+
+    <script>
+        let neurons = new Map();
+        let connections = [];
+        let neuronCounter = 1;
+        let rubberBandEnabled = true;
+        let selectedNeurons = new Set();
+        let isDragging = false;
+        let isRubberBanding = false;
+        let dragStart = { x: 0, y: 0 };
+        let rubberBand = null;
+
+        function initializeDemo() {
+            const container = document.getElementById('graphContainer');
+            
+            // Set up event listeners for MaxGraph-style interactions
+            container.addEventListener('mousedown', handleMouseDown);
+            container.addEventListener('mousemove', handleMouseMove);
+            container.addEventListener('mouseup', handleMouseUp);
+            container.addEventListener('click', handleClick);
+            
+            // Create initial network
+            createInitialNetwork();
+            
+            updateStatus('MaxGraph-style demo ready - try dragging and rubber band selection!');
+        }
+
+        function createInitialNetwork() {
+            // Create a sample neural network
+            const input1 = createNeuron('input', 100, 150, 'Input 1');
+            const input2 = createNeuron('input', 100, 250, 'Input 2');
+            const input3 = createNeuron('input', 100, 350, 'Input 3');
+            
+            const hidden1 = createNeuron('hidden', 300, 200, 'Hidden 1');
+            const hidden2 = createNeuron('hidden', 300, 300, 'Hidden 2');
+            
+            const output1 = createNeuron('output', 500, 250, 'Output');
+            
+            // Create connections
+            createConnection(input1, hidden1, 0.8);
+            createConnection(input1, hidden2, 0.3);
+            createConnection(input2, hidden1, -0.5);
+            createConnection(input2, hidden2, 0.7);
+            createConnection(input3, hidden1, 0.2);
+            createConnection(input3, hidden2, -0.3);
+            createConnection(hidden1, output1, 0.9);
+            createConnection(hidden2, output1, 0.4);
+        }
+
+        function createNeuron(type, x, y, label) {
+            const neuron = document.createElement('div');
+            neuron.className = `neuron ${type}`;
+            neuron.style.left = x + 'px';
+            neuron.style.top = y + 'px';
+            neuron.textContent = label;
+            neuron.dataset.id = `neuron_${neuronCounter++}`;
+            neuron.dataset.type = type;
+            
+            document.getElementById('graphContainer').appendChild(neuron);
+            
+            const neuronData = {
+                id: neuron.dataset.id,
+                element: neuron,
+                type: type,
+                x: x,
+                y: y,
+                label: label,
+                activation: 0
+            };
+            
+            neurons.set(neuron.dataset.id, neuronData);
+            return neuronData;
+        }
+
+        function createConnection(source, target, weight) {
+            const connection = document.createElement('div');
+            connection.className = `connection ${Math.abs(weight) > 0.5 ? 'strong' : 'weak'}`;
+            
+            const sourceRect = source.element.getBoundingClientRect();
+            const targetRect = target.element.getBoundingClientRect();
+            const containerRect = document.getElementById('graphContainer').getBoundingClientRect();
+            
+            const startX = source.x + 40;
+            const startY = source.y + 25;
+            const endX = target.x + 40;
+            const endY = target.y + 25;
+            
+            const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+            const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+            
+            connection.style.left = startX + 'px';
+            connection.style.top = startY + 'px';
+            connection.style.width = distance + 'px';
+            connection.style.transform = `rotate(${angle}deg)`;
+            
+            document.getElementById('graphContainer').appendChild(connection);
+            
+            connections.push({
+                element: connection,
+                source: source,
+                target: target,
+                weight: weight
+            });
+        }
+
+        function handleMouseDown(e) {
+            const container = document.getElementById('graphContainer');
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const neuron = e.target.closest('.neuron');
+            
+            if (neuron && !e.shiftKey) {
+                // Start dragging neuron - FIRM GRIP MODE
+                isDragging = true;
+                dragStart = { x: x, y: y };
+                
+                if (!selectedNeurons.has(neuron.dataset.id)) {
+                    clearSelection();
+                    selectNeuron(neuron.dataset.id);
+                }
+                
+                // Enable firm grip mode - disable all transitions
+                selectedNeurons.forEach(neuronId => {
+                    const neuronData = neurons.get(neuronId);
+                    if (neuronData) {
+                        neuronData.element.classList.add('dragging');
+                    }
+                });
+                
+                container.style.cursor = 'grabbing';
+                e.preventDefault(); // Prevent text selection
+            } else if (rubberBandEnabled && e.shiftKey && !neuron) {
+                // Start rubber band selection
+                isRubberBanding = true;
+                dragStart = { x: x, y: y };
+                
+                rubberBand = document.createElement('div');
+                rubberBand.className = 'rubber-band';
+                rubberBand.style.left = x + 'px';
+                rubberBand.style.top = y + 'px';
+                rubberBand.style.width = '0px';
+                rubberBand.style.height = '0px';
+                container.appendChild(rubberBand);
+            }
+        }
+
+        function handleMouseMove(e) {
+            const container = document.getElementById('graphContainer');
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (isDragging) {
+                const deltaX = x - dragStart.x;
+                const deltaY = y - dragStart.y;
+                
+                // FIRM GRIP: Immediate, precise position updates
+                selectedNeurons.forEach(neuronId => {
+                    const neuron = neurons.get(neuronId);
+                    if (neuron) {
+                        const newX = neuron.x + deltaX;
+                        const newY = neuron.y + deltaY;
+                        
+                        // Direct style update - no delays, no easing
+                        neuron.element.style.left = newX + 'px';
+                        neuron.element.style.top = newY + 'px';
+                        neuron.x = newX;
+                        neuron.y = newY;
+                    }
+                });
+                
+                // Update connections immediately
+                updateConnections();
+                dragStart = { x: x, y: y };
+                
+            } else if (isRubberBanding && rubberBand) {
+                const width = Math.abs(x - dragStart.x);
+                const height = Math.abs(y - dragStart.y);
+                const left = Math.min(x, dragStart.x);
+                const top = Math.min(y, dragStart.y);
+                
+                rubberBand.style.left = left + 'px';
+                rubberBand.style.top = top + 'px';
+                rubberBand.style.width = width + 'px';
+                rubberBand.style.height = height + 'px';
+                
+                // Update selection based on rubber band
+                updateRubberBandSelection(left, top, width, height);
+            }
+        }
+
+        function handleMouseUp(e) {
+            const container = document.getElementById('graphContainer');
+            
+            if (isDragging) {
+                isDragging = false;
+                
+                // Restore normal behavior - remove firm grip mode
+                selectedNeurons.forEach(neuronId => {
+                    const neuronData = neurons.get(neuronId);
+                    if (neuronData) {
+                        neuronData.element.classList.remove('dragging');
+                    }
+                });
+                
+                container.style.cursor = 'default';
+                updateStatus(`Moved ${selectedNeurons.size} neuron(s) - FIRM GRIP drag complete!`);
+            }
+            
+            if (isRubberBanding) {
+                isRubberBanding = false;
+                if (rubberBand) {
+                    rubberBand.remove();
+                    rubberBand = null;
+                }
+                updateStatus(`Selected ${selectedNeurons.size} neuron(s) with rubber band!`);
+            }
+        }
+
+        function handleClick(e) {
+            if (e.target.closest('.neuron') && !isDragging) {
+                const neuron = e.target.closest('.neuron');
+                if (e.ctrlKey || e.metaKey) {
+                    toggleNeuronSelection(neuron.dataset.id);
+                } else {
+                    clearSelection();
+                    selectNeuron(neuron.dataset.id);
+                }
+            } else if (!e.target.closest('.neuron')) {
+                clearSelection();
+            }
+        }
+
+        function selectNeuron(neuronId) {
+            selectedNeurons.add(neuronId);
+            const neuron = neurons.get(neuronId);
+            if (neuron) {
+                neuron.element.classList.add('selected');
+            }
+        }
+
+        function toggleNeuronSelection(neuronId) {
+            if (selectedNeurons.has(neuronId)) {
+                selectedNeurons.delete(neuronId);
+                const neuron = neurons.get(neuronId);
+                if (neuron) {
+                    neuron.element.classList.remove('selected');
+                }
+            } else {
+                selectNeuron(neuronId);
+            }
+        }
+
+        function clearSelection() {
+            selectedNeurons.forEach(neuronId => {
+                const neuron = neurons.get(neuronId);
+                if (neuron) {
+                    neuron.element.classList.remove('selected');
+                }
+            });
+            selectedNeurons.clear();
+        }
+
+        function updateRubberBandSelection(left, top, width, height) {
+            clearSelection();
+            
+            neurons.forEach(neuron => {
+                const neuronRect = {
+                    left: neuron.x,
+                    top: neuron.y,
+                    right: neuron.x + 80,
+                    bottom: neuron.y + 50
+                };
+                
+                const rubberRect = {
+                    left: left,
+                    top: top,
+                    right: left + width,
+                    bottom: top + height
+                };
+                
+                // Check if neuron intersects with rubber band
+                if (neuronRect.right >= rubberRect.left &&
+                    neuronRect.left <= rubberRect.right &&
+                    neuronRect.bottom >= rubberRect.top &&
+                    neuronRect.top <= rubberRect.bottom) {
+                    selectNeuron(neuron.id);
+                }
+            });
+        }
+
+        function updateConnections() {
+            connections.forEach(conn => {
+                const startX = conn.source.x + 40;
+                const startY = conn.source.y + 25;
+                const endX = conn.target.x + 40;
+                const endY = conn.target.y + 25;
+                
+                const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+                const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+                
+                conn.element.style.left = startX + 'px';
+                conn.element.style.top = startY + 'px';
+                conn.element.style.width = distance + 'px';
+                conn.element.style.transform = `rotate(${angle}deg)`;
+            });
+        }
+
+        function addNeuron(type) {
+            const x = 50 + Math.random() * 500;
+            const y = 50 + Math.random() * 400;
+            const label = `${type.charAt(0).toUpperCase() + type.slice(1)} ${neuronCounter}`;
+            
+            createNeuron(type, x, y, label);
+            updateStatus(`${type} neuron added - try dragging it around!`);
+        }
+
+        function connectNeurons() {
+            const neuronList = Array.from(neurons.values());
+            if (neuronList.length < 2) return;
+            
+            // Clear existing connections
+            connections.forEach(conn => conn.element.remove());
+            connections = [];
+            
+            // Create new connections
+            for (let i = 0; i < Math.min(8, neuronList.length * 2); i++) {
+                const source = neuronList[Math.floor(Math.random() * neuronList.length)];
+                const target = neuronList[Math.floor(Math.random() * neuronList.length)];
+                
+                if (source !== target) {
+                    const weight = Math.random() * 2 - 1;
+                    createConnection(source, target, weight);
+                }
+            }
+            
+            updateStatus('Neurons connected - professional edge routing!');
+        }
+
+        function applyHierarchicalLayout() {
+            const neuronList = Array.from(neurons.values());
+            const layerWidth = 200;
+            let currentLayer = 0;
+            
+            // Group by type
+            const layers = {
+                input: neuronList.filter(n => n.type === 'input'),
+                hidden: neuronList.filter(n => n.type === 'hidden'),
+                output: neuronList.filter(n => n.type === 'output')
+            };
+            
+            Object.values(layers).forEach(layer => {
+                if (layer.length > 0) {
+                    const startY = 100;
+                    const spacing = 400 / Math.max(1, layer.length - 1);
+                    
+                    layer.forEach((neuron, index) => {
+                        neuron.x = 100 + currentLayer * layerWidth;
+                        neuron.y = startY + index * spacing;
+                        neuron.element.style.left = neuron.x + 'px';
+                        neuron.element.style.top = neuron.y + 'px';
+                    });
+                    
+                    currentLayer++;
+                }
+            });
+            
+            updateConnections();
+            updateStatus('Hierarchical layout applied - perfect for neural networks!');
+        }
+
+        function applyCircularLayout() {
+            const neuronList = Array.from(neurons.values());
+            const centerX = 300;
+            const centerY = 300;
+            const radius = 150;
+            
+            neuronList.forEach((neuron, index) => {
+                const angle = (index / neuronList.length) * 2 * Math.PI;
+                neuron.x = centerX + Math.cos(angle) * radius - 40;
+                neuron.y = centerY + Math.sin(angle) * radius - 25;
+                neuron.element.style.left = neuron.x + 'px';
+                neuron.element.style.top = neuron.y + 'px';
+            });
+            
+            updateConnections();
+            updateStatus('Circular layout applied - see the network structure!');
+        }
+
+        function toggleRubberBand() {
+            rubberBandEnabled = !rubberBandEnabled;
+            updateStatus(`Rubber band selection ${rubberBandEnabled ? 'enabled' : 'disabled'} - hold Shift and drag!`);
+        }
+
+        function animateForwardPass() {
+            const neuronList = Array.from(neurons.values());
+            const inputNeurons = neuronList.filter(n => n.type === 'input');
+            const hiddenNeurons = neuronList.filter(n => n.type === 'hidden');
+            const outputNeurons = neuronList.filter(n => n.type === 'output');
+            
+            updateStatus('Animating forward pass through neural network...');
+            
+            // Animate input neurons
+            inputNeurons.forEach((neuron, index) => {
+                setTimeout(() => {
+                    neuron.element.classList.add('activated');
+                    setTimeout(() => neuron.element.classList.remove('activated'), 1000);
+                }, index * 200);
+            });
+            
+            // Animate hidden neurons
+            setTimeout(() => {
+                hiddenNeurons.forEach((neuron, index) => {
+                    setTimeout(() => {
+                        neuron.element.classList.add('activated');
+                        setTimeout(() => neuron.element.classList.remove('activated'), 1000);
+                    }, index * 150);
+                });
+            }, 600);
+            
+            // Animate output neurons
+            setTimeout(() => {
+                outputNeurons.forEach((neuron, index) => {
+                    setTimeout(() => {
+                        neuron.element.classList.add('activated');
+                        setTimeout(() => neuron.element.classList.remove('activated'), 1000);
+                    }, index * 100);
+                });
+            }, 1200);
+        }
+
+        function clearAll() {
+            document.getElementById('graphContainer').innerHTML = '';
+            neurons.clear();
+            connections = [];
+            selectedNeurons.clear();
+            neuronCounter = 1;
+            updateStatus('Graph cleared - start building your neural network!');
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeDemo);
+    </script>
+</body>
+</html>

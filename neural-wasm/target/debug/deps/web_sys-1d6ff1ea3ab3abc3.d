@@ -1,0 +1,10 @@
+/home/rustuser/typscr/extensionVS/maxgraphvsc/neural-wasm/target/debug/deps/libweb_sys-1d6ff1ea3ab3abc3.rmeta: /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/lib.rs /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/mod.rs /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_EventTarget.rs /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_Performance.rs /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_Window.rs /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_console.rs
+
+/home/rustuser/typscr/extensionVS/maxgraphvsc/neural-wasm/target/debug/deps/web_sys-1d6ff1ea3ab3abc3.d: /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/lib.rs /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/mod.rs /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_EventTarget.rs /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_Performance.rs /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_Window.rs /home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_console.rs
+
+/home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/lib.rs:
+/home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/mod.rs:
+/home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_EventTarget.rs:
+/home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_Performance.rs:
+/home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_Window.rs:
+/home/rustuser/.cargo/registry/src/index.crates.io-6f17d22bba15001f/web-sys-0.3.77/src/features/gen_console.rs:

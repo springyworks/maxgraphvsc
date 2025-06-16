@@ -30,13 +30,13 @@ async function main() {
 		],
 		bundle: true,
 		format: 'cjs',
-		minify: production,
-		sourcemap: !production,
+		minify: false, // Always preserve console.log for debugging
+		sourcemap: true,
 		sourcesContent: false,
 		platform: 'node',
 		outfile: 'dist/extension.js',
 		external: ['vscode'],
-		logLevel: 'silent',
+		logLevel: 'info', // Show build output
 		plugins: [
 			/* add to the end of plugins array */
 			esbuildProblemMatcherPlugin,
