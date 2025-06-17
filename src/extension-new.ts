@@ -19,9 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Create output channel for logging
 	const outputChannel = vscode.window.createOutputChannel('Neural Network Visualizer');
-	if (DEBUG) {
-		outputChannel.appendLine('🚀 Extension activated successfully');
-	}
+	outputChannel.appendLine('🚀 Extension activated successfully');
 
 	// Main neural network visualizer command
 	const neuralNetCommand = vscode.commands.registerCommand('maxgraphvsc.openNeuralNetwork', () => {

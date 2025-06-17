@@ -445,6 +445,9 @@
         <div class="header">
             <h1>🧠 Neural Network Visualizer</h1>
             <div class="subtitle">Enhanced Academic Demo with Rust-Style Computation</div>
+            <div class="privacy-notice" style="background: #f0f8f0; color: #2d5f2d; padding: 6px 12px; border-radius: 15px; font-size: 12px; margin: 8px auto; display: inline-block; border: 1px solid #90c695;">
+                🔒 Fully client-side - no data transmitted to servers
+            </div>
             <div class="tech-stack">
                 <span class="tech-badge rust-badge">🦀 Rust/WASM Backend</span>
                 <span class="tech-badge wasm-badge">⚡ WebAssembly Compute</span>
@@ -508,6 +511,10 @@
     </div>
 
     <script>
+        // Security Configuration - disable logging in production
+        const DEBUG_MODE = false; // Set to false for production/security
+        const ENABLE_LOGGING = DEBUG_MODE && false; // Double security switch
+        
         // Neural network state
         let neurons = [];
         let edges = [];
@@ -978,7 +985,14 @@
         }
         
         function log(message, type = 'info') {
+            // Security: Only log if explicitly enabled and in debug mode
+            if (!ENABLE_LOGGING || !DEBUG_MODE) {
+                return; // No logging in production for security
+            }
+            
             const logContainer = document.getElementById('log');
+            if (!logContainer) return; // Additional safety check
+            
             const entry = document.createElement('div');
             entry.className = `log-entry ${type}`;
             entry.textContent = `${new Date().toLocaleTimeString()} ${message}`;
