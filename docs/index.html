@@ -3,208 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧠 Neural Network WASM Visualizer | Interactive ML Demo</title>
-    <meta name="description" content="Professional neural network visualization powered by Rust WASM. Academic-quality interactive demo for machine learning education.">
-    <meta name="keywords" content="neural network, machine learning, WASM, Rust, visualization, interactive, education">
-    
-    <!-- Open Graph for social sharing -->
-    <meta property="og:title" content="Neural Network WASM Visualizer">
-    <meta property="og:description" content="Professional neural network visualization powered by Rust WASM">
-    <meta property="og:type" content="website">
-    
+    <title>MaxGraph VSCode Extension</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #fafbfc;
-            color: #24292f;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
         }
-        
-        .hero {
+        .header {
             text-align: center;
-            max-width: 600px;
-            padding: 40px 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            border-left: 6px solid #ce422b;
+            margin-bottom: 40px;
         }
-        
-        .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 16px;
-            color: #24292f;
-            font-weight: 600;
-        }
-        
-        .hero .subtitle {
+        .subtitle {
             font-size: 1.2rem;
-            color: #656d76;
-            margin-bottom: 32px;
-            line-height: 1.5;
-        }
-        
-        .demo-link {
-            display: inline-block;
-            background: linear-gradient(135deg, #ce422b, #c53727);
-            color: white;
-            text-decoration: none;
-            padding: 16px 32px;
-            border-radius: 8px;
-            font-size: 1.1rem;
+            color: #666;
+            margin: 10px 0;
             font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(206, 66, 43, 0.3);
         }
-        
-        .demo-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(206, 66, 43, 0.4);
-        }
-        
-        .tech-stack {
-            margin-top: 32px;
+        .main-actions {
+            margin-top: 30px;
             display: flex;
-            justify-content: center;
             gap: 20px;
+            justify-content: center;
             flex-wrap: wrap;
         }
-        
-        .tech-badge {
-            background: #f6f8fa;
-            color: #656d76;
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 0.85rem;
-            border: 1px solid #d1d9e0;
+        .features {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #0066cc;
         }
-        
-        .github-link {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            color: #656d76;
+        .features h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        .features ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        .features li {
+            margin-bottom: 8px;
+            color: #555;
+            line-height: 1.4;
+        }
+        .demo-link {
+            display: inline-block;
+            background: #0066cc;
+            color: white;
+            padding: 12px 24px;
             text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.3s ease;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background 0.3s ease;
         }
-        
+        .demo-link:hover {
+            background: #0052a3;
+        }
+        .github-link {
+            display: inline-block;
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
         .github-link:hover {
-            color: #24292f;
-        }
-        
-        /* Mini graph hover effects */
-        .mini-graph circle {
-            transition: all 0.3s ease;
-        }
-        
-        .mini-graph:hover circle {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-        
-        .mini-graph:hover line {
-            opacity: 0.8;
-        }
-        
-        @media (max-width: 640px) {
-            .hero {
-                margin: 20px;
-                padding: 30px 20px;
-            }
-            
-            .hero h1 {
-                font-size: 2rem;
-            }
-            
-            .tech-stack {
-                gap: 10px;
-            }
+            background: #555;
         }
     </style>
 </head>
 <body>
-    <a href="https://github.com/springyworks/maxgraphvsc" class="github-link" target="_blank" rel="noopener noreferrer">
-        📁 View on GitHub →
-    </a>
-    
-    <div class="hero">
-        <h1>🧠 Neural Network Visualizer</h1>
-        <p class="subtitle">
-            Professional interactive demonstration of neural network visualization 
-            powered by Rust/WASM with academic-quality animations and controls.
-        </p>
+    <div class="header">
+        <h1>dLinOSS and rust implementation</h1>
+        <p class="subtitle">MaxGraph VSCode Extension</p>
+        <p>Graph visualization demos using the MaxGraph library</p>
         
-        <a href="enhanced-academic-demo.html" class="demo-link">
-            🚀 Launch Interactive Demo
-        </a>
-        
-        <div class="tech-stack">
-            <span class="tech-badge">🦀 Rust/WASM</span>
-            <span class="tech-badge">🎨 MaxGraph</span>
-            <span class="tech-badge">🧪 Academic</span>
-            <span class="tech-badge">📱 Responsive</span>
-        </div>
-        
-        <!-- Mini preview graph -->
-        <div class="mini-graph" style="position: relative; margin-top: 32px; background: #f8f9fa; border-radius: 8px; padding: 20px; border: 1px solid #e1e4e8; cursor: pointer;" onclick="window.location.href='enhanced-academic-demo.html'">
-            <svg width="100%" height="120" viewBox="0 0 400 120" style="overflow: visible;">
-                <!-- Input layer -->
-                <circle cx="40" cy="30" r="8" fill="#6f42c1" opacity="0.8"/>
-                <circle cx="40" cy="60" r="8" fill="#6f42c1" opacity="0.8"/>
-                <circle cx="40" cy="90" r="8" fill="#6f42c1" opacity="0.8"/>
-                
-                <!-- Hidden layer -->
-                <circle cx="160" cy="20" r="8" fill="#0969da" opacity="0.8"/>
-                <circle cx="160" cy="45" r="8" fill="#0969da" opacity="0.8"/>
-                <circle cx="160" cy="70" r="8" fill="#0969da" opacity="0.8"/>
-                <circle cx="160" cy="95" r="8" fill="#0969da" opacity="0.8"/>
-                
-                <!-- Output layer -->
-                <circle cx="280" cy="45" r="8" fill="#cf222e" opacity="0.8"/>
-                <circle cx="280" cy="75" r="8" fill="#cf222e" opacity="0.8"/>
-                
-                <!-- Connections -->
-                <g stroke="#6c757d" stroke-width="1" opacity="0.4">
-                    <line x1="48" y1="30" x2="152" y2="20"/>
-                    <line x1="48" y1="30" x2="152" y2="45"/>
-                    <line x1="48" y1="60" x2="152" y2="45"/>
-                    <line x1="48" y1="60" x2="152" y2="70"/>
-                    <line x1="48" y1="90" x2="152" y2="70"/>
-                    <line x1="48" y1="90" x2="152" y2="95"/>
-                    
-                    <line x1="168" y1="20" x2="272" y2="45"/>
-                    <line x1="168" y1="45" x2="272" y2="45"/>
-                    <line x1="168" y1="70" x2="272" y2="75"/>
-                    <line x1="168" y1="95" x2="272" y2="75"/>
-                </g>
-                
-                <!-- Labels -->
-                <text x="40" y="110" text-anchor="middle" font-size="10" fill="#6c757d">Input</text>
-                <text x="160" y="110" text-anchor="middle" font-size="10" fill="#6c757d">Hidden</text>
-                <text x="280" y="110" text-anchor="middle" font-size="10" fill="#6c757d">Output</text>
-            </svg>
-            
-            <!-- Interactive demo button overlay -->
-            <a href="enhanced-academic-demo.html" style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #ce422b, #c53727); color: white; text-decoration: none; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; box-shadow: 0 2px 8px rgba(206, 66, 43, 0.3); transition: all 0.3s ease;" 
-               onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(206, 66, 43, 0.4)'"
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(206, 66, 43, 0.3)'">
-                🔬 Go to Detailed Demo →
-            </a>
-            
-            <p style="margin-top: 8px; font-size: 0.9rem; color: #6c757d; text-align: center;">
-                <strong>Click anywhere</strong> • Drag neurons • Watch training • Explore ML concepts
-            </p>
+        <div class="main-actions">
+            <a href="https://springyworks.github.io/maxgraphvsc/enhanced-academic-demo.html" class="demo-link">🚀 Run Demo</a>
+            <a href="https://github.com/springyworks/maxgraphvsc" class="github-link" target="_blank">📁 GitHub Repo</a>
         </div>
     </div>
+
+    <div class="features">
+        <h3>Features:</h3>
+        <ul>
+            <li>Graph manipulation and interaction</li>
+            <li>Neural network visualization</li>
+            <li>Real-time graph updates</li>
+            <li>Different implementation approaches</li>
+        </ul>
+    </div>
+
+    <footer style="margin-top: 40px; text-align: center; color: #666; border-top: 1px solid #eee; padding-top: 20px;">
+        <p>MaxGraph VSCode Extension - Interactive Graph Visualization</p>
+    </footer>
 </body>
 </html>

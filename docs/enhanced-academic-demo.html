@@ -144,6 +144,57 @@
             margin-bottom: 20px;
         }
         
+        /* Loading overlay styles */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(2px);
+        }
+        
+        .loading-spinner {
+            text-align: center;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ce422b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-title {
+            font-weight: 600;
+            color: #24292f;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .loading-subtitle {
+            color: #656d76;
+            font-size: 14px;
+            font-weight: normal;
+        }
+        
+        .loading-overlay.hidden {
+            display: none;
+        }
+        
         .neuron {
             position: absolute;
             width: 55px;
@@ -402,6 +453,15 @@
         </div>
         
         <div class="graph-container" id="graph">
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <div class="loading-text">
+                        <div class="loading-title">🧠 Loading Neural Network...</div>
+                        <div class="loading-subtitle" id="loadingStatus">Initializing architecture...</div>
+                    </div>
+                </div>
+            </div>
             <div class="performance-badge">
                 <span class="status-indicator status-computing" id="statusIndicator"></span>
                 <span id="performanceText">Initializing...</span>
@@ -457,6 +517,7 @@
         // Initialize neural network
         async function initializeNetwork() {
             const container = document.getElementById('graph');
+            const loadingStatus = document.getElementById('loadingStatus');
             const containerWidth = container.clientWidth;
             const containerHeight = container.clientHeight;
             
@@ -468,6 +529,7 @@
             const offsetY = Math.max(0, (containerHeight - 300 * scaleY) / 2);
             
             log('🏗️ Building neural architecture...', 'info');
+            loadingStatus.textContent = 'Creating input layer...';
             
             // Create input neurons with staggered timing
             for (let i = 0; i < 3; i++) {
@@ -479,6 +541,7 @@
             }
             
             // Create hidden neurons
+            loadingStatus.textContent = 'Building hidden layers...';
             await new Promise(resolve => setTimeout(resolve, 300));
             for (let i = 0; i < 4; i++) {
                 await new Promise(resolve => setTimeout(resolve, 150));
@@ -489,6 +552,7 @@
             }
             
             // Create output neurons
+            loadingStatus.textContent = 'Finalizing output layer...';
             await new Promise(resolve => setTimeout(resolve, 300));
             for (let i = 0; i < 2; i++) {
                 await new Promise(resolve => setTimeout(resolve, 200));
@@ -499,9 +563,15 @@
             }
             
             // Create connections with delay
+            loadingStatus.textContent = 'Establishing neural connections...';
             await new Promise(resolve => setTimeout(resolve, 500));
             log('🔗 Establishing connections...', 'info');
             await createConnections();
+            
+            // Hide loading overlay
+            loadingStatus.textContent = 'Loading complete!';
+            await new Promise(resolve => setTimeout(resolve, 500));
+            document.getElementById('loadingOverlay').classList.add('hidden');
             
             log('🔗 Neural network architecture initialized', 'info');
             setStatus('ready', 'Network Built');
